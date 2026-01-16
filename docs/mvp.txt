@@ -1,0 +1,341 @@
+Good question — this is exactly the right moment to **cut scope without breaking the soul of the system**.
+
+Your MVP is **not** about profitability.
+It is about proving **three non-obvious truths**:
+
+1. You can enforce **constant SOL yield per trade**
+2. The **pointer + lock system survives trends**
+3. Grouped exits recover locked capital
+
+Everything else is optional *for now*.
+
+Below is a **clean, defensible MVP** that still represents the real engine.
+
+---
+
+## MVP GOAL (One Sentence)
+
+> **Demonstrate a working SOL-denominated volatility engine that executes pointer-based trades, locks capital during trends, and exits in grouped recovery — with provable constant SOL yield per completed hand.**
+
+If your MVP does this, the project is legitimate.
+
+---
+
+# MVP: WHAT TO BUILD (AND WHAT TO CUT)
+
+## ✅ KEEP (Core)
+
+These are **non-negotiable** for the MVP.
+
+### 1. Pointer Engine (Simplified)
+
+**Keep**
+
+* Fixed pointer quantum (e.g. $0.05)
+* Pointer up/down movement
+* Consecutive move counting
+
+**Cut**
+
+* Multiple pointer granularities
+* Dynamic quantums
+
+> One pointer, one quantum, deterministic.
+
+---
+
+### 2. Single Asset, Single Wallet
+
+**Keep**
+
+* SOL / USDC only
+* One strategy wallet
+
+**Cut**
+
+* Multi-wallet
+* Multi-pair
+* Capital partitioning
+
+---
+
+### 3. Constant Buy-In + Constant Yield
+
+**Keep**
+
+* Buy = 13.33% of SOL price
+* Profit per hand = **exactly 0.00049953 SOL**
+
+**Cut**
+
+* Fee optimization
+* Yield tuning
+
+> Hard-code the invariant. Prove it works.
+
+---
+
+### 4. Hands & Batches (Reduced)
+
+**Keep**
+
+* Hands
+* Batches of 10
+* Lock thresholds: **only Batch 1 & 2**
+
+**Cut**
+
+* Batch 3 (black swan depth)
+* Dynamic batch sizing
+
+MVP thresholds:
+
+```
+Batch 1 → lock at 7
+Batch 2 → lock at 5
+```
+
+---
+
+### 5. Progressive Locking
+
+**Keep**
+
+* Lock when threshold exceeded
+* Bounce detection (1 pointer step)
+
+**Cut**
+
+* Re-entry of skipped nodes
+* Partial unlocks
+
+Locked = locked. Simple.
+
+---
+
+### 6. Grouped Exit (CRITICAL)
+
+**Keep**
+
+* Aggregate locked hands
+* Exit at higher recovery pointer
+* Distribute fixed SOL yield per hand
+
+**Cut**
+
+* Multi-stage grouped exits
+* Exit optimization
+
+> This is the MVP’s *killer feature*.
+
+---
+
+### 7. Paper Execution Only
+
+**Keep**
+
+* Simulated fills
+* Simulated latency
+* Slippage modeling
+
+**Cut**
+
+* Jupiter integration
+* Real transactions
+
+**DO NOT GO LIVE IN MVP.**
+
+---
+
+## ❌ CUT FROM MVP (Explicitly)
+
+| Feature                  | Why                               |
+| ------------------------ | --------------------------------- |
+| Black swan human gating  | Only needed after capital is real |
+| Cancel / replace buffers | Execution noise not MVP-critical  |
+| UI dashboard             | Logs + charts are enough          |
+| Multi-batch unlock logic | Complexity explosion              |
+| Subscription / auth      | Not relevant                      |
+
+---
+
+# MVP SYSTEM ARCHITECTURE
+
+```
+Price Feed (CSV / WebSocket)
+        ↓
+Pointer Engine
+        ↓
+Hand Manager
+        ↓
+Batch Lock Logic
+        ↓
+Grouped Exit Engine
+        ↓
+PnL Verifier (SOL)
+```
+
+Everything else is stubs or mocks.
+
+---
+
+# MVP DATA STRUCTURES (Minimal)
+
+### Pointer
+
+```ts
+{
+  level: number
+  direction: 'UP' | 'DOWN'
+  streak: number
+}
+```
+
+### Hand
+
+```ts
+{
+  id
+  entryPointer
+  buySOL
+  targetExitPointer
+  status: OPEN | LOCKED | CLOSED
+}
+```
+
+### Batch
+
+```ts
+{
+  id
+  hands: Hand[]
+  lockThreshold
+  locked: boolean
+}
+```
+
+---
+
+# MVP SUCCESS METRICS (VERY IMPORTANT)
+
+Your MVP is **successful if**:
+
+### 1️⃣ Constant SOL Yield
+
+```text
+∀ closed hands:
+  realizedSOL == 0.00049953
+```
+
+No exceptions.
+
+---
+
+### 2️⃣ Lock Survival Test
+
+Feed it:
+
+* 30–50% one-directional moves
+
+Expected:
+
+* Hands lock
+* No forced exits
+* No system reset
+
+---
+
+### 3️⃣ Recovery Test
+
+Feed:
+
+* Extended chop after lock
+
+Expected:
+
+* Grouped exit triggers
+* Locked hands close
+* SOL yield remains constant
+
+---
+
+### 4️⃣ No Price Prediction
+
+You should be able to shuffle candles and still get:
+
+* Same pointer behavior
+* Same outcomes
+
+---
+
+# MVP BUILD PLAN (2–3 Weeks)
+
+## Week 1 – Simulator
+
+* Historical SOL data
+* Pointer engine
+* Hand creation
+* Logging
+
+## Week 2 – Locks + Grouped Exit
+
+* Batch logic
+* Lock enforcement
+* Group exit simulation
+* SOL accounting
+
+## Week 3 – Stress Testing
+
+* Crash scenarios
+* Fake slippage
+* Monte-Carlo shuffles
+
+---
+
+# MVP OUTPUT (What You Show People)
+
+1. **Graph**
+
+   * Price vs pointer
+   * Lock zones
+   * Exit zones
+
+2. **Table**
+
+   * Hand ID
+   * Entry pointer
+   * Exit pointer
+   * SOL earned
+
+3. **Statement**
+
+> “This system produces fixed SOL yield per trade, survives trends, and only resumes extraction when volatility returns.”
+
+That’s it.
+
+---
+
+# Final Truth
+
+If you try to ship:
+
+* Jupiter
+* Live trading
+* UI
+* Black swan logic
+
+**You will fail the MVP.**
+
+Your edge is **structural correctness**, not speed.
+
+---
+
+If you want, next I can:
+
+* Design the **exact MVP simulator**
+* Write **pseudo-code for the MVP**
+* Help you choose **pointer quantum**
+* Design **stress-test scenarios**
+* Turn this into a **pitch-ready technical demo**
+
+Just tell me **what you want to build first**.
