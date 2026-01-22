@@ -22,19 +22,11 @@ use pointer::{Pointer, PointerConfig, PointerMode, DirectionTracker};
 use hand::create_hand;
 use batch::{is_locked, active_batch_id};
 
-// =====================
-// Globals
-// =====================
-
 static POINTER: Lazy<Mutex<Option<Pointer>>> =
     Lazy::new(|| Mutex::new(None));
 
 static DIRECTION: Lazy<Mutex<DirectionTracker>> =
     Lazy::new(|| Mutex::new(DirectionTracker::new()));
-
-// =====================
-// Pointer Initialization
-// =====================
 
 fn init_pointer(price: f64) {
     let mut guard = POINTER.lock().unwrap();
@@ -50,10 +42,6 @@ fn init_pointer(price: f64) {
         println!("🧭 Pointer initialized at ${:.4}", price);
     }
 }
-
-// =====================
-// Main Loop
-// =====================
 
 #[tokio::main]
 async fn main() {
@@ -71,9 +59,6 @@ async fn main() {
     }
 }
 
-// =====================
-// Price Processing
-// =====================
 
 async fn process_price(sol_price_usd: f64) {
     init_pointer(sol_price_usd);
@@ -99,15 +84,10 @@ async fn process_price(sol_price_usd: f64) {
         sol_price_usd
     );
 
-    // Execute one hand per pointer step
     for _ in 0..steps.abs() {
         execute_buy(sol_price_usd).await;
     }
 }
-
-// =====================
-// Buy Execution
-// =====================
 
 async fn execute_buy(sol_price_usd: f64) {
     if is_locked() {
@@ -122,7 +102,7 @@ async fn execute_buy(sol_price_usd: f64) {
 
     let input_mint =
         "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v"; // USDT
-    let amount: u64 = 1_000_000; // 1 USDT (6 decimals)
+    let amount: u64 = 2_000_000; // 2 USDT (6 decimals)
     let slippage_bps = 50;
 
     println!("🚀 Executing BUY via Jupiter...");
@@ -300,79 +280,3 @@ async fn process_price(sol_price_usd: f64) {
 
 */
 
-
-/* 
-use std::sync::Mutex;
-use std::time::Duration;
-
-use chrono::Utc;
-use once_cell::sync::Lazy;
-use tokio::time::interval;
-
-mod constants;
-mod price_feed;
-
-use constants::BUY_IN_SOL;
-use price_feed::fetch_sol_price_usd;
-
-#[derive(Debug)]
-struct Hand {
-    entry_sol_price_usd: f64,
-    buy_in_usd: f64,
-    buy_in_sol: f64,
-    opened_at: String,
-}
-
-static HANDS: Lazy<Mutex<Vec<Hand>>> =
-    Lazy::new(|| Mutex::new(Vec::new()));
-
-fn open_new_hand(sol_price_usd: f64) -> Hand {
-    Hand {
-        entry_sol_price_usd: sol_price_usd,
-        buy_in_usd: sol_price_usd * BUY_IN_SOL,
-        buy_in_sol: BUY_IN_SOL,
-        opened_at: Utc::now().to_rfc3339(),
-    }
-}
-
-#[tokio::main]
-async fn main() {
-    dotenvy::dotenv().ok();
-
-    let mut ticker = interval(Duration::from_secs(1));
-
-    loop {
-        ticker.tick().await;
-
-        match fetch_sol_price_usd().await {
-            Ok(sol_price_usd) => {
-                process_price(sol_price_usd);
-            }
-            Err(e) => {
-                eprintln!("Price error: {}", e);
-            }
-        }
-    }
-}
-fn process_price(sol_price_usd: f64) {
-    
-    if sol_price_usd > 0.0 {
-        let hand = open_new_hand(sol_price_usd);
-
-        let mut hands = HANDS.lock().unwrap();
-        hands.push(hand);
-
-        let last = hands.last().unwrap();
-
-        println!(
-            "NEW HAND | SOL: ${:.6} | Buy USD: ${:.6} | Buy SOL: {:.4} | Time: {}",
-            last.entry_sol_price_usd,
-            last.buy_in_usd,
-            last.buy_in_sol,
-            last.opened_at
-        );
-    }
-}
-
-
-*/
